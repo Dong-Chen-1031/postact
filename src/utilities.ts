@@ -1,63 +1,42 @@
 import type { VirtualElement } from "./element";
 import { transcribe } from "./transcribe";
 
-class SelectedElement<T extends HTMLElement> {
-  readonly inner: T;
-
-  constructor(inner: T) {
-    this.inner = inner;
-  }
+interface SelectedListener {
+  readonly type: keyof HTMLElementEventMap;
+  readonly listener: (...args: any) => any;
 
   /**
-   * Registers a listener.
+   * Postact - Removes the listener.
+   */
+  remove: () => void;
+}
+
+interface SelectedElement<T extends HTMLElement> {
+  /**
+   * Postact - Registers a listener.
    *
    * @param type  The type of the listener.
    * @param fn The handler.
    */
-  on<K extends keyof HTMLElementEventMap>(
+  readonly on: <K extends keyof HTMLElementEventMap>(
     type: K,
-    fn: (event: HTMLElementEventMap[K]) => any,
-  ) {
-    this.inner.addEventListener(type, fn);
-  }
+    fn: (event: HTMLElementEventMap[K], element: SelectedElement<T>) => any,
+  ) => SelectedListener;
 
   /**
-   *
-   * @param ele Render children within this element, replacing the old ones.
+   * Postact - Render children within this element, replacing the old ones.
    */
-  render(ele: VirtualElement | string | (VirtualElement | string)[]) {
-    if (typeof ele == "string") {
-      return this.inner.replaceChildren(window.document.createTextNode(ele));
-    }
-
-    if (typeof ele == "object") {
-      if ("tag" in ele) {
-        return this.inner.replaceChildren(transcribe([ele]));
-      } else {
-        return this.inner.replaceChildren(transcribe(ele));
-      }
-    }
-
-    throw new Error("unreachable");
-  }
+  readonly render: (
+    ele: VirtualElement | string | (VirtualElement | string)[],
+  ) => void;
 
   /**
-   * Removes the selected element from the DOM.
+   * Postact - Checks whether this element exists in `where`.
+   * @param where Defaults to the `document`.
    */
-  remove() {
-    this.inner.remove();
-  }
-
-  /**
-   * Checks whether this element exists in `where`.
-   * If not specified, checks if exists in `window.document`.
-   *
-   * @param where The location to check.
-   */
-  exists(where?: HTMLElement): boolean {
-    if (where) return where.contains(this.inner);
-    else return window.document.contains(this.inner);
-  }
+  readonly exists: <K extends HTMLElement>(
+    where?: (SelectedElement<K> & HTMLElement) | HTMLElement,
+  ) => void;
 }
 
 /**
@@ -72,10 +51,39 @@ class SelectedElement<T extends HTMLElement> {
  */
 export function select<T extends HTMLElement = HTMLElement>(
   query: string,
-): SelectedElement<T> {
+): SelectedElement<T> & T {
   const result = window.document.querySelector(query);
   if (!result)
     throw new ReferenceError(`Could not find element with query: ${query}`);
 
-  return new SelectedElement(result as T);
+  return Object.assign(result, {
+    on(t: any, fn: any) {
+      result.addEventListener(t, fn);
+      return {
+        type: t,
+        listener: fn,
+        remove: () => result.removeEventListener(t, fn),
+      };
+    },
+
+    render(ele: any) {
+      if (typeof ele == "string") {
+        return result.replaceChildren(window.document.createTextNode(ele));
+      }
+
+      if (typeof ele == "object") {
+        if ("tag" in ele) {
+          return result.replaceChildren(transcribe([ele]));
+        } else {
+          return result.replaceChildren(transcribe(ele));
+        }
+      }
+
+      throw new Error("unreachable");
+    },
+
+    exists(where?: any) {
+      return where ? where.contains(result) : window.document.contains(result);
+    },
+  }) as any;
 }
