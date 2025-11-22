@@ -1,3 +1,3 @@
-import { state } from "./src/state";
+import { state, select, $ } from "./src";
 
-state.number(10);
+console.log($.div($.a("welcome!")));

@@ -39,7 +39,7 @@ class State<T> {
    * Update the state and eagerly trigger all subscribers.
    * @param upd Update dispatch or value.
    */
-  update(upd: StateUpdate<T>) {
+  eagerlyUpdate(upd: StateUpdate<T>) {
     this.#item = resolveStateUpdate(this.#item, upd);
     this.#listeners.forEach(
       (subscriber) => subscriber && subscriber(this.#item),
@@ -60,29 +60,29 @@ class NumberState extends State<number> {
     super(n);
   }
 
-  override update(n: number) {
+  update(n: number) {
     if (n == super.value) return;
-    super.update(n);
+    super.eagerlyUpdate(n);
   }
 
   add(by: number = 1): void {
     if (by == 0) return;
-    this.update(super.value + by);
+    this.eagerlyUpdate(super.value + by);
   }
 
   sub(by: number = 1): void {
     if (by == 0) return;
-    this.update(super.value - by);
+    this.eagerlyUpdate(super.value - by);
   }
 
   mul(by: number): void {
     if (by == 1) return;
-    this.update(super.value * by);
+    this.eagerlyUpdate(super.value * by);
   }
 
   div(by: number): void {
     if (by == 1) return;
-    this.update(super.value / by);
+    this.eagerlyUpdate(super.value / by);
   }
 }
 

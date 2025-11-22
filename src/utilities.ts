@@ -1,1 +1,46 @@
-export function select() {}
+interface SelectionUtils {
+  on: <T extends keyof HTMLElementEventMap>(
+    event: T,
+    handler: (e: HTMLElementEventMap[T]) => void,
+  ) => { remove: () => void };
+}
+
+export function select<T extends HTMLElement>(
+  query: string,
+): T & SelectionUtils {
+  const result = window.document.querySelector<T>(query) as
+    | undefined
+    | (T & SelectionUtils);
+  if (!result)
+    throw new ReferenceError(
+      `could not find any element matching query: ${query}`,
+    );
+
+  result.on = (name, handler) => {
+    result.addEventListener(name, handler);
+    return { remove: () => result.removeEventListener(name, handler) };
+  };
+
+  return result as T & SelectionUtils;
+}
+
+type _DollarSign = Record<
+  keyof HTMLElementTagNameMap,
+  (child: string | HTMLElement) => HTMLElement
+>;
+export const $: _DollarSign = new Proxy(
+  {},
+  {
+    get(_, tag: string) {
+      return (child: any) => {
+        const element = window.document.createElement(tag);
+        if (typeof child === "string") {
+          element.textContent = child;
+        } else {
+          element.appendChild(child);
+        }
+        return element;
+      };
+    },
+  },
+) as _DollarSign;
