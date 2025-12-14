@@ -1,3 +1,16 @@
+class RuntimeError extends Error {
+  constructor(reason: string) {
+    super(reason);
+  }
+}
+
+export function ensureWindow(): void {
+  if (typeof window === "undefined")
+    throw new RuntimeError(
+      "expected the runtime context to be in the browser (window is undefined)",
+    );
+}
+
 interface SelectionUtils {
   on: <T extends keyof HTMLElementEventMap>(
     event: T,

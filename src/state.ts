@@ -7,20 +7,29 @@ function getUpdaterValue<T>(current: T, upd: Updater<T>): T {
 }
 
 export type Subscriber<T> = (value: T) => any;
+
+export interface Subscribable<T> {
+  /**
+   * Current state value.
+   * You may replace it using the `=` (assign) operator, as it's not read-only, yet
+   * no subscribers will be notified nor will checks be made, which is the same behavior `set()` does.
+   */
+  value: T;
+
+  /**
+   * Subscribe to state value changes.
+   * @param subscriber The subscriber, taking the current state value as the parameter.
+   */
+  readonly subscribe: (subscriber: Subscriber<T>) => void;
+}
+
 export type Checker<T> = (current: T, other: T) => boolean;
 
-export interface State<T> {
+export interface State<T> extends Subscribable<T> {
   /**
    * postact internals
    */
   readonly __postactItem: `state`;
-
-  /**
-   * Current value of the state.
-   * You may replace it using the `=` (assign) operator, as it's not read-only, yet
-   * no subscribers will be notified nor are checks made, which is the same behavior `set()` does.
-   */
-  value: T;
 
   /**
    * Update the state value and notifies all subscribers of the change.
@@ -36,12 +45,6 @@ export interface State<T> {
    * returning the new value to set, or just the new value.
    */
   readonly set: (upd: Updater<T>) => void;
-
-  /**
-   * Subscribe to state changes.
-   * @param subscriber The subscriber, taking the current state value as the parameter.
-   */
-  readonly subscribe: (subscriber: Subscriber<T>) => void;
 
   /**
    * Notifies all subscribers of the current state value.

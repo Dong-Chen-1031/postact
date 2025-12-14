@@ -6,3 +6,4 @@ export {
   type Updater,
   type UpdateDispatch,
 } from "./state";
+export { html } from "./html";
