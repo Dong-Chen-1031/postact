@@ -3,9 +3,13 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "docs:init": "docmd init",
+    "docs:dev": "docmd dev",
+    "docs:build": "docmd build"
   },
   "devDependencies": {
+    "@mgks/docmd": "^0.3.2",
     "@testing-library/dom": "^10.4.1",
     "@types/bun": "latest",
     "@vitest/ui": "^4.0.9",
@@ -15,5 +19,8 @@
   },
   "peerDependencies": {
     "typescript": "^5"
-  }
+  },
+  "trustedDependencies": [
+    "@mgks/docmd"
+  ]
 }
