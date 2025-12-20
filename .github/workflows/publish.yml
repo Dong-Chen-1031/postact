@@ -36,41 +36,18 @@ jobs:
             tag=latest
           fi
 
-          # Use bun pack to create tarballs (transforms workspace:^ to real versions)
-          # Then npm publish for OIDC authentication
-          for pkg in packages/wallets/*/; do
-            if [ -f "$pkg/package.json" ]; then
-              pkg_name=$(node -p "require('./$pkg/package.json').name")
-              echo "Checking if $pkg_name exists on npm..."
+          # npm publish for OIDC authentication
+          pkg_name=$(node -p "require('./package.json').name")
+          echo "Checking if $pkg_name exists on npm..."
 
-              if npm view "$pkg_name" version &>/dev/null; then
-                echo "Publishing $pkg..."
-                (
-                  cd "$pkg"
-                  bun pm pack
-                  tarball=$(ls *.tgz)
-
-                  # Extract, fix workspace references, repack
-                  tar -xzf "$tarball"
-                  node -e "
-                    const fs = require('fs');
-                    const pkg = JSON.parse(fs.readFileSync('package/package.json', 'utf8'));
-                    // Replace 0.0.0-auto-managed with actual version in dependencies
-                    for (const [name, ver] of Object.entries(pkg.dependencies || {})) {
-                      if (ver.includes('0.0.0-auto-managed')) {
-                        pkg.dependencies[name] = ver.replace('0.0.0-auto-managed', '$version');
-                      }
-                    }
-                    fs.writeFileSync('package/package.json', JSON.stringify(pkg, null, 2) + '\n');
-                  "
-                  tar -czf "$tarball" package
-                  rm -rf package
-
-                  npm publish "$tarball" --access public --tag $tag
-                  rm -f "$tarball"
-                )
-              else
-                echo "⚠️  Skipping $pkg_name - package does not exist on npm. Create it first with: npm publish --access public"
-              fi
-            fi
-          done
+          if npm view "$pkg_name" version &>/dev/null; then
+            echo "Publishing $pkg..."
+            (
+              bun pm pack
+              tarball=$(ls *.tgz)
+              npm publish "$tarball" --access public --tag $tag
+              rm -f "$tarball"
+            )
+          else
+            echo "⚠️  Skipping $pkg_name - package does not exist on npm. Create it first with: npm publish --access public"
+          fi
