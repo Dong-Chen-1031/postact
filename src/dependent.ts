@@ -128,6 +128,5 @@ _dependent.later = function <R, T>(
   return new DependentLater(state, gen);
 };
 
-export const dependent = _dependent as unknown as
-  | DependentEntry
-  | (<R, T>(state: State<T>, gen: (value: T) => R) => Dependent<T, R>);
+export const dependent = _dependent as DependentEntry &
+  (<R, T>(state: State<T>, gen: (value: T) => R) => Dependent<T, R>);

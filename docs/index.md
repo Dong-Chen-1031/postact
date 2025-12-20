@@ -22,7 +22,7 @@ You can get started with Postact:
 ```ts
 import { 
   select,
-  state
+  state,
   html,
 } from "@ramptix/postact";
 
@@ -30,7 +30,7 @@ function createApp() {
   const $count = state(0);
 
   function onClick() {
-    $count.update(v => v + 1)
+    $count.update(v => v + 1);
   }
 
   return html`
@@ -42,7 +42,11 @@ select("#app").render(createApp())
 ```
 
 ::: card App
-<div>(demo soon)</div>
+
+<div data-preview="1">
+<p>Loading preview...</p>
+</div>
+
 :::
 
 ## States

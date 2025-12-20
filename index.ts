@@ -1,13 +1,27 @@
-import { route, html, select } from "./src";
+import { select, state, dependent, html } from "./src";
 
-route("/", (ctx) => {
-  select("#app").render(html`
-    <h1>Hello!</h1>
-    <p>Now go to /name/&lt;your name&gt;</p>
-  `);
-});
+function createApp() {
+  const $count = state(0);
+  const $message = dependent($count, (count) => {
+    if (count < 10) {
+      return "Click!";
+    } else if (count < 20) {
+      return "Go on, let's see what you've got.";
+    } else if (count == 20) {
+      return "I'm tired. I'll just count for you at this point.";
+    } else {
+      return `${count}...`;
+    }
+  });
 
-route("/name/:username", (ctx) => {
-  const { username } = ctx.params;
-  select("#app").render(html`<h1>Hello ${username}</h1>`);
-});
+  function onClick() {
+    $count.update((v) => v + 1);
+  }
+
+  return html`
+    <h1>${$message}</h1>
+    <button onclick=${onClick}>${$count}</button>
+  `;
+}
+
+select("#app").render(createApp());

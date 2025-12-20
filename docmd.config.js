@@ -61,9 +61,7 @@ module.exports = {
     // Most SEO data is pulled from page frontmatter (title, description, image, etc.)
     // These are fallbacks or site-wide settings.
     seo: {
-      // Default meta description if a page doesn't have one in its frontmatter
-      defaultDescription:
-        "docmd is a Node.js command-line tool for generating beautiful, lightweight static documentation sites from Markdown files.",
+      defaultDescription: "Simple web development, again.",
       openGraph: {
         // For Facebook, LinkedIn, etc.
         // siteName: 'docmd Documentation', // Optional, defaults to config.siteTitle
@@ -102,7 +100,8 @@ module.exports = {
   // Navigation Structure (Sidebar)
   // Icons are kebab-case names from Lucide Icons (https://lucide.dev/)
   navigation: [
-    { title: "Home", path: "/", icon: "home" }, // Corresponds to docs/index.md
+    { title: "Home", path: "/", icon: "home" },
+    { title: "Dependent", path: "/dependent", icon: "" },
     {
       title: "Getting Started",
       icon: "rocket",
@@ -138,19 +137,15 @@ module.exports = {
     // External links:
     {
       title: "GitHub",
-      path: "https://github.com/mgks/docmd",
+      path: "https://github.com/AWeirdDev/postact",
       icon: "github",
       external: true,
     },
   ],
 
-  pageNavigation: true, // Enable previous / next page navigation at the bottom of each page
+  pageNavigation: true,
 
-  // Footer Configuration
-  // Markdown is supported here.
   footer: "© " + new Date().getFullYear() + " AWeirdDev",
 
-  // Favicon Configuration
-  // Path relative to outputDir root
   favicon: "/assets/favicon.ico",
 };
