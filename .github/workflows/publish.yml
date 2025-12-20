@@ -10,13 +10,67 @@ permissions:
   contents: read
 
 jobs:
-  prepare:
-    name: prepare
+  publish:
+    name: publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
 
-      - run: bun install
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+
+      - run: bun ci
       - run: bun run build
-      - run: bunx npm publish
+      - name: Publish packages
+        run: |
+          version="$GITHUB_REF_NAME"
+
+          if [[ $version == *"beta"* ]]; then
+            tag=beta
+          elif [[ $version == *"alpha"* ]]; then
+            tag=alpha
+          else
+            tag=latest
+          fi
+
+          # Use bun pack to create tarballs (transforms workspace:^ to real versions)
+          # Then npm publish for OIDC authentication
+          for pkg in packages/wallets/*/; do
+            if [ -f "$pkg/package.json" ]; then
+              pkg_name=$(node -p "require('./$pkg/package.json').name")
+              echo "Checking if $pkg_name exists on npm..."
+
+              if npm view "$pkg_name" version &>/dev/null; then
+                echo "Publishing $pkg..."
+                (
+                  cd "$pkg"
+                  bun pm pack
+                  tarball=$(ls *.tgz)
+
+                  # Extract, fix workspace references, repack
+                  tar -xzf "$tarball"
+                  node -e "
+                    const fs = require('fs');
+                    const pkg = JSON.parse(fs.readFileSync('package/package.json', 'utf8'));
+                    // Replace 0.0.0-auto-managed with actual version in dependencies
+                    for (const [name, ver] of Object.entries(pkg.dependencies || {})) {
+                      if (ver.includes('0.0.0-auto-managed')) {
+                        pkg.dependencies[name] = ver.replace('0.0.0-auto-managed', '$version');
+                      }
+                    }
+                    fs.writeFileSync('package/package.json', JSON.stringify(pkg, null, 2) + '\n');
+                  "
+                  tar -czf "$tarball" package
+                  rm -rf package
+
+                  npm publish "$tarball" --access public --tag $tag
+                  rm -f "$tarball"
+                )
+              else
+                echo "⚠️  Skipping $pkg_name - package does not exist on npm. Create it first with: npm publish --access public"
+              fi
+            fi
+          done
