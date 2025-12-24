@@ -3,7 +3,7 @@ import { select, html, type VirtualItem, state, dependent } from "./src";
 function createApp(): VirtualItem {
   const $count = state(0);
   const $element = dependent($count, (count) => {
-    return count > 4 ? "WOW!" : "";
+    return count > 4 ? "hello" : null;
   });
 
   return html`<div>

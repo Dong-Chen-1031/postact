@@ -6,6 +6,7 @@ import type {
 } from "./structure";
 
 import { ensureWindow } from "../utilities";
+import { transformArgToVirtualItem } from "../html";
 
 function isPrimitive(value: any): boolean {
   return ["string", "number", "bigint", "boolean"].includes(typeof value);
@@ -13,7 +14,6 @@ function isPrimitive(value: any): boolean {
 
 function _toFrag(vi: VirtualItem): DocumentFragment {
   const fragment = window.document.createDocumentFragment();
-
   if (vi === null || typeof vi === "undefined") return fragment;
 
   if (typeof vi === "string") {
@@ -33,7 +33,11 @@ function _toFrag(vi: VirtualItem): DocumentFragment {
           if (isPrimitive(value)) {
             // then we'll keep it simple
             tn.textContent = value.toString();
+          } else if (value === null) {
+            tn.textContent = "";
           } else {
+            const frag = _toFrag(transformArgToVirtualItem(value));
+            tn.parentElement?.replaceChild(frag, tn);
           }
         });
 
@@ -55,12 +59,15 @@ function _toFrag(vi: VirtualItem): DocumentFragment {
 
       // subscribables
       if (vi.subscribable)
-        vi.subscribable.subscribe((value: any) => {
+        vi.subscribable.subscribe(function sub(value: any) {
           if (isPrimitive(value)) {
             // then we'll keep it simple
             element.textContent = value.toString();
+          } else if (value === null) {
+            element.textContent = "";
           } else {
-            element.replaceChildren(_toFrag(value));
+            // vi.subscribable!.unsubscribe(sub);
+            element.replaceChildren(_toFrag(transformArgToVirtualItem(value)));
           }
         });
 
@@ -74,15 +81,17 @@ function _toFrag(vi: VirtualItem): DocumentFragment {
 
   // we're left with VirtualFragment
   if (vi.subscribable)
-    vi.subscribable.subscribe((value: any) => {
+    vi.subscribable.subscribe(function sub(value: any) {
       if (isPrimitive(value)) {
         fragment.textContent = value.toString();
+      } else if (value === null) {
+        fragment.textContent = "";
       } else {
         const newFrag = (value as VirtualFragment).children.reduce((f, vi) => {
-          f.append(_toFrag(vi));
+          f.append(_toFrag(transformArgToVirtualItem(vi)));
           return f;
         }, window.document.createDocumentFragment());
-        fragment.replaceChildren(newFrag);
+        fragment.parentElement?.replaceChildren(newFrag);
       }
     });
 

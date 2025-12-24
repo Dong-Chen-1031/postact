@@ -393,7 +393,7 @@ class HTMLParser {
   }
 }
 
-function transformArgToVirtualItem(insertion: Argument): VirtualItem {
+export function transformArgToVirtualItem(insertion: Argument): VirtualItem {
   switch (identifyArgument(insertion)) {
     case ArgumentType.Empty:
       return null;
@@ -416,12 +416,9 @@ function transformArgToVirtualItem(insertion: Argument): VirtualItem {
         } else {
           // quite possibly some kind of element
           return {
-            __postactItem: "virtual-element",
-            tag: "",
-            attributes: {},
-            children: value as VirtualItem[],
-            listeners: [],
-            subscribable: value,
+            __postactItem: "virtual-fragment",
+            children: [value],
+            subscribable: state,
           };
         }
       } else {
