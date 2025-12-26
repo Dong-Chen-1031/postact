@@ -26,14 +26,19 @@ function _toFrag(vi: VirtualItem): DocumentFragment {
     if (vi["__postactItem"] == "virtual-text-node") {
       // VirtualTextNode
       const vtn = vi as VirtualTextNode;
-      let tn = window.document.createTextNode(vtn.data);
+      const tn = window.document.createTextNode(vtn.data);
 
       if (vtn.subscribable)
         vtn.subscribable.subscribe((value) => {
-          const frag = _toFrag(transformArgToVirtualItem(value));
-            )
-          tn.parentElement?.replaceChild(frag, tn);
-          tn = frag
+          if (isPrimitive(value)) {
+            // then we'll keep it simple
+            tn.textContent = value.toString();
+          } else if (value === null) {
+            tn.textContent = "";
+          } else {
+            const frag = _toFrag(transformArgToVirtualItem(value));
+            tn.parentElement?.replaceChild(frag, tn);
+          }
         });
 
       fragment.appendChild(tn);
