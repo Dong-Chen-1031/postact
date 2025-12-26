@@ -40,6 +40,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && rolldown -m -c",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
     "docs:init": "docmd init",
     "docs:dev": "docmd dev -c docmd.config.cjs",
     "docs:build": "docmd build"
