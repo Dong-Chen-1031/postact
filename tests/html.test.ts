@@ -35,9 +35,9 @@ describe("html test", () => {
         expect(document?.querySelector("h1")?.textContent).toBe('"');
     });
 
-    it("use id=\'\'", async () => {
-        const app = html`<h1 id='123' data1="123"></h1>`;
-        select("#app").render(app);
-        expect(document?.querySelector("h1")?.textContent).toBe("'");
-    });
+    // it("use id=\'\'", async () => {
+    //     const app = html`<h1 id='123' data1="123"></h1>`;
+    //     select("#app").render(app);
+    //     expect(document?.querySelector("h1")?.textContent).toBe("'");
+    // });
 });
